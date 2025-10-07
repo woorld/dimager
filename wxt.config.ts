@@ -4,4 +4,11 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   srcDir: 'src',
   modules: ['@wxt-dev/module-svelte'],
+  manifest: {
+    host_permissions: [ 'https://cdn.discordapp.com/attachments/*' ],
+    permissions: [
+      'downloads',
+      'tabs',
+    ],
+  },
 });
