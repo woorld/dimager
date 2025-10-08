@@ -11,9 +11,13 @@
     const closeTabIds: number[] = [];
 
     for (const tab of tabs) {
-      // TODO: まともな例外処理
-      await browser.downloads.download({ url: tab.url || '', saveAs: true }); // TODO: saveAsで保存先を指定
-      closeTabIds.push(tab.id || 0);
+      const { id, url } = tab;
+      if (id == null || url == null) {
+        continue;
+      }
+
+      await browser.downloads.download({ url });
+      closeTabIds.push(id);
     }
 
     browser.tabs.remove(closeTabIds);
