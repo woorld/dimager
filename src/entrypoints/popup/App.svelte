@@ -1,19 +1,18 @@
 <script lang="ts">
+  import { discordImageUrl, processIntervalMs } from '@/constants';
+
   type TargetTabInfo = {
     tabId: number,
     url: string,
   };
 
-  const intervalMs = 100;
   let isNoImageTabErrorVisible = $state(false);
   let isButtonEnabled = $state(true);
 
   const onClickDownload = async () => {
     isButtonEnabled = false;
 
-    const tabs = await browser.tabs.query({
-      url: 'https://cdn.discordapp.com/attachments/*' // TODO: URL共通化
-    });
+    const tabs = await browser.tabs.query({ url: discordImageUrl });
 
     if (tabs.length <= 0) {
       isNoImageTabErrorVisible = true;
@@ -55,11 +54,11 @@
       browser.tabs.remove(targetTab.tabId);
 
       targetTabs.shift();
-      timerId = setTimeout(processEveryTab, intervalMs);
+      timerId = setTimeout(processEveryTab, processIntervalMs);
     };
 
     // NOTE: forで処理すると一気にダウンロードが走って怖いため、setTimeoutで処理を回す
-    let timerId = setTimeout(processEveryTab, intervalMs);
+    let timerId = setTimeout(processEveryTab, processIntervalMs);
   }
 </script>
 
