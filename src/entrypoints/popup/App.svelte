@@ -6,14 +6,18 @@
 
   const intervalMs = 100;
   let isNoImageTabErrorVisible = $state(false);
+  let isButtonEnabled = $state(true);
 
   const onClickDownload = async () => {
+    isButtonEnabled = false;
+
     const tabs = await browser.tabs.query({
       url: 'https://cdn.discordapp.com/attachments/*' // TODO: URL共通化
     });
 
     if (tabs.length <= 0) {
       isNoImageTabErrorVisible = true;
+      isButtonEnabled = true;
       return;
     }
     isNoImageTabErrorVisible = false;
@@ -34,12 +38,14 @@
 
   const downloadAndClose = (targetTabs: TargetTabInfo[]) => {
     if (targetTabs.length <= 0) {
+      isButtonEnabled = true;
       return;
     }
 
     const processEveryTab = () => {
       if (targetTabs.length <= 0) {
         clearTimeout(timerId);
+        isButtonEnabled = true;
         return;
       }
 
@@ -62,8 +68,7 @@
   {#if isNoImageTabErrorVisible}
     <p class="red">Discordの画像タブがありません</p>
   {/if}
-  <!-- TODO: ボタンの活性状態制御 -->
-  <button onclick={onClickDownload}>一括DLしてタブを閉じる</button>
+  <button disabled={!isButtonEnabled} onclick={onClickDownload}>一括DLしてタブを閉じる</button>
 </main>
 
 <style>
