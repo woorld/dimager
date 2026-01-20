@@ -1,7 +1,13 @@
 <script lang="ts">
+  type TargetTabInfo = {
+    tabId: number,
+    url: string,
+  };
+
+  const intervalMs = 100;
   let isNoImageTabErrorVisible = $state(false);
 
-  const downloadImage = async () => {
+  const onClickDownload = async () => {
     const tabs = await browser.tabs.query({
       url: 'https://cdn.discordapp.com/attachments/*' // TODO: URL共通化
     });
@@ -12,7 +18,7 @@
     }
     isNoImageTabErrorVisible = false;
 
-    const closeTabIds: number[] = [];
+    const targetTabs: TargetTabInfo[] = [];
 
     for (const tab of tabs) {
       const { id, url } = tab;
@@ -20,19 +26,44 @@
         continue;
       }
 
-      await browser.downloads.download({ url });
-      closeTabIds.push(id);
+      targetTabs.push({ tabId: id, url });
     }
 
-    browser.tabs.remove(closeTabIds);
+    downloadAndClose(targetTabs);
   };
+
+  const downloadAndClose = (targetTabs: TargetTabInfo[]) => {
+    if (targetTabs.length <= 0) {
+      return;
+    }
+
+    const processEveryTab = () => {
+      if (targetTabs.length <= 0) {
+        clearTimeout(timerId);
+        return;
+      }
+
+      const targetTab = targetTabs[0];
+
+      browser.downloads.download({ url: targetTab.url });
+      browser.tabs.remove(targetTab.tabId);
+
+      targetTabs.shift();
+      timerId = setTimeout(processEveryTab, intervalMs);
+    };
+
+    // NOTE: forで処理すると一気にダウンロードが走って怖いため、setTimeoutで処理を回す
+    let timerId = setTimeout(processEveryTab, intervalMs);
+  }
 </script>
 
 <main>
+  <h1>dimager</h1>
   {#if isNoImageTabErrorVisible}
     <p class="red">Discordの画像タブがありません</p>
   {/if}
-  <button onclick={downloadImage} >一括DLしてタブを閉じる</button>
+  <!-- TODO: ボタンの活性状態制御 -->
+  <button onclick={onClickDownload}>一括DLしてタブを閉じる</button>
 </main>
 
 <style>
